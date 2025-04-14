@@ -24,7 +24,7 @@ void printUsage() {
               << " -interType <string>"
               << " -allowIntersection <0 or 1>\n\n"
               << "Example:\n"
-              << "  ./main -numItem 30 -lenData 2 -numPack 4 -numAgg 10 -alpha 5 -interType (CI or CPI or CIH or CPIH) -allowIntersection 1 \n\n";
+              << "  ./main -numItem 20 -lenData 4 -numPack 1 -numAgg 1 -alpha 3 -interType (CI or CPI or CIH or CPIH) -allowIntersection 1 \n\n";
 }
 
 int main(int argc, char* argv[]) {
