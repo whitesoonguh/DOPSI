@@ -1,8 +1,8 @@
 ### Introduction
 
-- Scalable Outsourced Multi-party Membership Test for Sensitive Data with Non-Zero Preserving Compression
+- Large-scale Multi-server Membership Test with Non-Zero Preserving Mapping
 
-- CCS 2025 Anonymous Submission
+- IEEE S&P 2026 Anonymous Submission
 
 ### How to compile and run the code
 
