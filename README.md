@@ -1,6 +1,6 @@
 ### Introduction
 
-- Large-scale Multi-server Membership Test with Non-Zero Preserving Mapping
+- Scalable Private Membership Test over Distributed and Encrypted Data
 
 - IEEE S&P 2026 Anonymous Submission
 
