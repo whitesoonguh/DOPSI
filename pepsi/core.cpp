@@ -37,10 +37,13 @@ std::vector<int64_t> getCW(
 ) {
     std::vector<int64_t> ret(numCtxt, 0);
     
-    uint64_t maxSize = choose(numCtxt, kVal);
-    if (maxSize < data) {
-        throw std::runtime_error("Parameter is TOO small to encode the given value!");
-    }
+    // uint64_t maxSize = choose(numCtxt, kVal);
+
+    // if (maxSize < data) {
+    //     throw std::runtime_error(
+    //         "Parameter is TOO small to encode the given value!" 
+    //     );
+    // }
 
     uint64_t rem = data;
 
@@ -62,10 +65,10 @@ std::vector<int64_t> getCWTable(
 ) {
     std::vector<int64_t> ret(numCtxt, 0);
     
-    uint64_t maxSize = choose(numCtxt, kVal);
-    if (maxSize < data) {
-        throw std::runtime_error("Parameter is TOO small to encode the given value!");
-    }
+    // uint64_t maxSize = choose(numCtxt, kVal);
+    // if (maxSize < data) {
+    //     throw std::runtime_error("Parameter is TOO small to encode the given value!");
+    // }
 
     uint64_t rem = data;
 

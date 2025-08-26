@@ -1,18 +1,18 @@
 #include "APSI_tests.h"
 
-size_t ctxtSize(Ciphertext<DCRTPoly>& ctxt) {
-    size_t size = 0;
-    for (auto& element : ctxt->GetElements()) {
-      for (auto& subelements : element.GetAllElements()) {
-        auto lenght = subelements.GetLength();
-        size += lenght * sizeof(subelements[0]);
-      }
-    }
-    return size;
- };
+// size_t ctxtSize(Ciphertext<DCRTPoly>& ctxt) {
+//     size_t size = 0;
+//     for (auto& element : ctxt->GetElements()) {
+//       for (auto& subelements : element.GetAllElements()) {
+//         auto lenght = subelements.GetLength();
+//         size += lenght * sizeof(subelements[0]);
+//       }
+//     }
+//     return size;
+//  };
   
 
-std::vector<std::vector<int64_t>> genData(
+std::vector<std::vector<int64_t>> genDataAPSI(
     uint32_t numItem,
     uint32_t itemLen,
     uint32_t prime
@@ -22,7 +22,6 @@ std::vector<std::vector<int64_t>> genData(
     std::uniform_int_distribution<int64_t> dist(3, ((int64_t)1 << 16) - 1);
 
     std::vector<std::vector<int64_t>> ret(numItem);
-    #pragma omp parallel for
     for (uint32_t i = 0; i < numItem; i++) {
         std::vector<int64_t> _tmp(itemLen);
         for (uint32_t j = 0; j < itemLen; j++) {
@@ -43,7 +42,7 @@ void testFullProtocol(uint32_t numParties, uint32_t numItem, bool isEncrypted) {
     std::cout << remDepth << std::endl;
 
     std::cout << "Generate Random Data..." << std::endl;
-    auto msgVec = genData(actualNumItem, itemLen, prime);
+    auto msgVec = genDataAPSI(actualNumItem, itemLen, prime);
     std::cout << "Done!" << std::endl;
 
     // Dummy Value..?
@@ -145,6 +144,121 @@ void testFullProtocol(uint32_t numParties, uint32_t numItem, bool isEncrypted) {
     std::cout << "Aggregated Size: " << (double)ctxtSize(retCtxt[0]) * retCtxt.size() / 1000000 << "MB" << std::endl;
 }
 
+void testFullPSI(uint32_t numParties, uint32_t numItem, bool isEncrypted) {
+    uint32_t actualNumItem = 1<<numItem;
+    uint32_t itemLen = 8;
+    uint32_t prime = (1<<16) + 1;
+    uint32_t remDepth = std::ceil(std::log2(numParties));
+    HE bfv("BFV", 65537, isEncrypted + remDepth);    
+
+
+    uint32_t queryNum = 2048;
+    if (bfv.ringDim / itemLen < 4096) {
+        std::cout << "[Warning] 2048 Queries may not support..." << std::endl;
+
+        queryNum = 2048 / (4096 / (bfv.ringDim / itemLen));
+
+        std::cout << "Current Query Number: " << queryNum << std::endl;
+        std::cout << "Plz multiply some number by the exp results..." << queryNum << std::endl;
+    }
+
+    std::cout << remDepth << std::endl;
+
+    std::cout << "Generate Random Data..." << std::endl;
+    auto msgVec = genDataAPSI(actualNumItem, itemLen, prime);
+    auto queryVec = genDataAPSI(queryNum, itemLen, prime);
+    std::cout << "Done!" << std::endl;
+
+    // Dummy Value..?
+    // Just wanted to avoid errors when generating tables.
+    uint32_t maxBin = getMaxBins((bfv.ringDim / itemLen), numItem);
+    
+    std::cout << maxBin << std::endl;
+
+    std::cout << "Create Hash Table..." << std::endl;
+    auto hashTable = computeCuckooHashTableServer(
+        msgVec, bfv.ringDim, maxBin, -1, 3
+    );
+    std::cout << "Done!" << std::endl;    
+
+    // Create Query Value
+    uint32_t numPowers = 55;
+    std::vector<uint32_t> pos(numPowers);
+    for (uint32_t i = 0; i < numPowers; i++) {
+        pos[i] = i + 1;
+    }
+    NTTContext ctx(bfv.prime, 3, 1<<16);
+    APSIParams params {
+        pos, 5, numPowers, 0
+    };    
+
+    std::cout << "Construct Query" << std::endl;
+    APSIQuery query = constructPSIQuery (
+        bfv, params, queryVec
+    );
+    size_t ctSize = ctxtSize(query.powers[0]);
+    size_t querySize = ctxtSize(query.powers[0]) * query.powers.size();
+    std::cout << "Done!" << std::endl;
+    std::cout << "Ctxt Size: " << (double)ctSize / 1000000 << "MB" << std::endl;    
+    std::cout << "Query Size: " << (double)querySize / 1000000 << "MB" << std::endl;    
+
+    std::vector<Ciphertext<DCRTPoly>> retCtxts;
+
+    if (isEncrypted) {
+        std::cout << "Construct Database" << std::endl;    
+        APSICtxtDB DB = constructCtxtDB(bfv, ctx, hashTable, numPowers);
+        std::cout << "Done!" << std::endl;    
+
+        std::cout << "Compute Intersection" << std::endl;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        retCtxts = compInterCtxt(
+            bfv, params, DB, query, remDepth
+        );
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto tdiff = std::chrono::duration<double>(t2-t1).count();    
+        std::cout << "Done!" << std::endl;
+        std::cout << "Inter Time: " << tdiff << std::endl;    
+
+        size_t responseSize = ctxtSize(retCtxts[0]) * retCtxts.size();
+        std::cout << "Response Size: " << (double)(responseSize) / 1000000 << "MB" << std::endl;        
+    } else {
+        std::cout << "Construct Database" << std::endl;    
+        NTTContext ctx(bfv.prime, 3, 1<<16);
+        APSIPtxtDB DB = constructPtxtDB(bfv, ctx, hashTable, numPowers);
+        std::cout << "Done!" << std::endl;            
+
+
+        std::cout << "Compute Intersection for PtxtDB" << std::endl;
+        auto t1 = std::chrono::high_resolution_clock::now();
+        retCtxts = compInterPtxt(
+            bfv, params, DB, query, remDepth
+        );
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto tdiff = std::chrono::duration<double>(t2-t1).count();    
+        std::cout << "Done!" << std::endl;
+        std::cout << "Inter Time: " << tdiff << std::endl;            
+        size_t responseSize = ctxtSize(retCtxts[0]) * retCtxts.size();
+        std::cout << "Response Size: " << (double)(responseSize) / 1000000 << "MB" << std::endl;                
+    }
+
+    // Do Aggergation
+    // Make Dummy Ctxts
+    std::vector<std::vector<Ciphertext<DCRTPoly>>> responses(numParties);
+    responses[0] = retCtxts;
+    for (uint32_t i = 1; i < numParties; i++) {
+        std::vector<Ciphertext<DCRTPoly>> _tmp(retCtxts.begin(), retCtxts.end());
+        responses[i] = _tmp;
+    }
+    // Do Aggregation!
+    std::cout << "Aggregation Start..." << std::endl;
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto retCtxt = compAggResponse(bfv, responses);
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto tdiff = std::chrono::duration<double>(t2-t1).count();    
+    std::cout << "Done!" << std::endl;
+    std::cout << "Aggregation Time: " << tdiff << std::endl;
+    std::cout << "Aggregated Size: " << (double)ctxtSize(retCtxt[0]) * retCtxt.size() / 1000000 << "MB" << std::endl;
+}
 
 
 void testFullProtocolTwoParty(int numParties) {
@@ -154,7 +268,7 @@ void testFullProtocolTwoParty(int numParties) {
     HE bfv("BFV", 65537, 0 + std::ceil(std::log2(numParties)));
     
     std::cout << "Generate Random Data..." << std::endl;
-    auto msgVec = genData(numItem, itemLen, prime);
+    auto msgVec = genDataAPSI(numItem, itemLen, prime);
     std::cout << "Done!" << std::endl;
 
     // Dummy Value..?
@@ -231,7 +345,7 @@ void testSender() {
     HE bfv("BFV", 65537, 3);
 
     std::cout << "Generate Random Data..." << std::endl;
-    auto msgVec = genData(numItem, itemLen, prime);
+    auto msgVec = genDataAPSI(numItem, itemLen, prime);
     std::cout << "Done!" << std::endl;
 
     // Dummy Value..?
@@ -260,7 +374,7 @@ void testHashing() {
     uint32_t ringDim = 1<<14;
 
     std::cout << "Generate Random Data..." << std::endl;
-    auto msgVec = genData(numItem, itemLen, prime);
+    auto msgVec = genDataAPSI(numItem, itemLen, prime);
     std::cout << "Done!" << std::endl;
 
     // Dummy Value..?

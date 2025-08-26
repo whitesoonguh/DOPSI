@@ -18,7 +18,8 @@ void printUsage() {
     std::cerr << "\nUsage: ./main_apsi"
               << " -numParties <int>"
               << " -numItems <int>"
-              << " -isEncrypted <bool>" << "\n\n";
+              << " -isEncrypted <bool>"
+              << " -isPSI <bool>" << "\n\n";
             //   << " -allowIntersection <0 or 1>\n\n"
             //   << "Example:\n"
             //   << "  ./main -numItem 30 -lenData 2 -numPack 4 -numAgg 10 -alpha 5 -interType (CI or CPI or CIH or CPIH) -allowIntersection 1 \n\n";
@@ -27,7 +28,7 @@ void printUsage() {
 int main(int argc, char* argv[]) {
     // We want ALL flags to be supplied. List them here:
     const std::string REQUIRED_FLAGS[] = {
-        "-numParties",  "-isEncrypted", "-numItems"
+        "-numParties",  "-isEncrypted", "-numItems", "-isPSI"
     };
 
     // Store all key-value pairs in a map
@@ -79,19 +80,29 @@ int main(int argc, char* argv[]) {
     }
     bool isEncrypted = (args["-isEncrypted"] == "1");
 
+    if (args["-isPSI"] != "0" && args["-isPSI"] != "1") {
+        std::cerr << "Error: isPSI must be either 0 (false) or 1 (true).\n";
+        return 1;
+    }
+    bool isPSI = (args["-isPSI"] == "1");    
+
     // 3. Print final values
     std::cout << "Running testFullProtocol with:\n"
               << "  numParties     = " << numParties << "\n"
               << "  numItems     = " << numItems << "\n"
               << "  isEncrypted = " << isEncrypted << "\n"
-            //   << "  alpha     = " << alpha << "\n"
-            //   << "  interType = " << interType << "\n"
-            //   << "  allowIntersection = " << (allowIntersection ? "true" : "false") << "\n";
+              << "  isPSI = " << isPSI << "\n"
               << "\n";
 
-    testFullProtocol(
-        numParties, numItems, isEncrypted
-    );
+    if (isPSI) {
+        testFullPSI(
+            numParties, numItems, isEncrypted
+        );
+    } else {
+        testFullProtocol(
+            numParties, numItems, isEncrypted
+        );
+    }
     return 0;
 }
 

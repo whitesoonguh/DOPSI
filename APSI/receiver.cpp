@@ -38,6 +38,37 @@ APSIQuery constructQuery(
     return APSIQuery {powers, params.pos};
 }
 
+APSIQuery constructPSIQuery(
+    HE &bfv,
+    APSIParams params,
+    std::vector<std::vector<int64_t>> items
+) {
+    // Useful Params
+    uint32_t numPowers = params.pos.size();
+    uint32_t prime = bfv.prime;
+    // uint32_t numItems = items.size();
+
+    // Hash Positions
+    std::vector<int64_t> column = computeCuckooHashTableClient(
+        items, bfv.ringDim, -1
+    );
+
+    std::vector<Ciphertext<DCRTPoly>> powers(numPowers);
+    for (uint32_t i = 0; i < numPowers; i++) {
+        std::vector<int64_t> _tmp(bfv.ringDim, -2);
+
+        for (uint32_t j = 0; j < column.size(); j++) {
+            _tmp[j] = modPow(column[j], params.pos[i], prime);
+        }
+
+        Plaintext ptxt = bfv.packing(_tmp);
+        powers[i] = bfv.encrypt(ptxt);
+    }
+
+    return APSIQuery {powers, params.pos};
+}
+
+
 std::tuple<bool, int32_t> findConseqZeros(
     std::vector<int64_t> items,
     uint32_t stride

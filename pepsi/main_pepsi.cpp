@@ -19,7 +19,8 @@ void printUsage() {
               << " -numItem <int>"
               << " -bitlen <int>"
               << " -HW <int>"
-              << " -isEncrypted <bool>" << "\n\n";
+              << " -isEncrypted <bool>"
+              << " -isPSI <bool>" << "\n\n";
             //   << " -allowIntersection <0 or 1>\n\n"
             //   << "Example:\n"
             //   << "  ./main -numItem 30 -lenData 2 -numPack 4 -numAgg 10 -alpha 5 -interType (CI or CPI or CIH or CPIH) -allowIntersection 1 \n\n";
@@ -28,7 +29,7 @@ void printUsage() {
 int main(int argc, char* argv[]) {
     // We want ALL flags to be supplied. List them here:
     const std::string REQUIRED_FLAGS[] = {
-        "-numItem", "-bitlen", "-HW", "-isEncrypted"
+        "-numItem", "-bitlen", "-HW", "-isEncrypted", "-isPSI"
     };
 
     // Store all key-value pairs in a map
@@ -87,19 +88,34 @@ int main(int argc, char* argv[]) {
     }
     bool isEncrypted = (args["-isEncrypted"] == "1");
 
+    // Parse allowIntersection (should be 0 or 1)
+    if (args["-isPSI"] != "0" && args["-isPSI"] != "1") {
+        std::cerr << "Error: isPSI must be either 0 (false) or 1 (true).\n";
+        return 1;
+    }
+    bool isPSI = (args["-isPSI"] == "1");
+
     // 3. Print final values
     std::cout << "Running testFullProtocol with:\n"
               << "  numItem     = " << numItem << "\n"
               << "  bitlen      = " << bitlen << "\n"
               << "  HW          = " << HW << "\n"
               << "  isEncrypted = " << isEncrypted << "\n"
+              << "  isPSI = " << isPSI << "\n"
             //   << "  alpha     = " << alpha << "\n"
             //   << "  interType = " << interType << "\n"
             //   << "  allowIntersection = " << (allowIntersection ? "true" : "false") << "\n";
               << "\n";
 
-    testPEPSIProtocol(
-        numItem, bitlen, HW, isEncrypted
-    );
+    if (isPSI) {
+        testPEPSIProtocolPSI(
+            numItem, bitlen, HW, isEncrypted
+        );
+    } else {
+        testPEPSIProtocol(
+            numItem, bitlen, HW, isEncrypted
+        );
+    }
+
     return 0;
 }

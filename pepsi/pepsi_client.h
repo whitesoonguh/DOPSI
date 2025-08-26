@@ -19,6 +19,13 @@ PEPSIQuery encryptClientData(
     uint32_t kVal
 );
 
+PEPSIQuery encryptClientDataPSI (
+    HE &bfv,
+    std::vector<int64_t> data,
+    uint32_t numCtxt,
+    uint32_t kVal
+);
+
 bool checkIntResult (
     HE &bfv,
     Ciphertext<DCRTPoly> resCtxt

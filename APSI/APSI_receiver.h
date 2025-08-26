@@ -3,7 +3,7 @@
 
 #include <openfhe.h>
 #include "APSI_core.h"
-#include "hashing.h"
+#include "../core/hashing.h"
 #include "HE.h"
 
 using namespace lbcrypto;
@@ -23,6 +23,12 @@ std::tuple<bool, int32_t, int32_t> findIntersection(
     HE &bfv,
     APSIParams params,
     std::vector<Ciphertext<DCRTPoly>> retCtxts
+);
+
+APSIQuery constructPSIQuery(
+    HE &bfv,
+    APSIParams params,
+    std::vector<std::vector<int64_t>> items
 );
 
 #endif 

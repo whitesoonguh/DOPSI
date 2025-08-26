@@ -38,7 +38,15 @@ typedef struct _ResponsePEPSIServer {
 
 PEPSIDB constructPEPSIDB (
     HE &bfv,
-    std::vector<uint64_t> dataVec,
+    std::vector<int64_t> dataVec,
+    uint32_t numCtxt,
+    uint32_t kVal,   
+    bool isEncrypted
+);
+
+PEPSIDB constructPEPSIDBPSI (
+    HE &bfv,
+    std::vector<int64_t> dataVec,
     uint32_t numCtxt,
     uint32_t kVal,   
     bool isEncrypted

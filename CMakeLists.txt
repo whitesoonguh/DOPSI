@@ -59,6 +59,34 @@ add_library(DOPMT
     ${PROJECT_SOURCE_DIR}/src/tests.cpp
 )
 
+add_library(CORE
+    ${PROJECT_SOURCE_DIR}/core/hashing.cpp
+    ${PROJECT_SOURCE_DIR}/core/utils.cpp
+    ${PROJECT_SOURCE_DIR}/core/vaf.cpp
+)
+
+add_library(DOPSI
+    ${PROJECT_SOURCE_DIR}/DOPSI/client.cpp
+    ${PROJECT_SOURCE_DIR}/DOPSI/server.cpp
+    ${PROJECT_SOURCE_DIR}/DOPSI/test.cpp
+)
+
+# Link OpenFHE with DOPMT
+if(BUILD_STATIC)
+    target_link_libraries(CORE PRIVATE ${OpenFHE_STATIC_LIBRARIES} OpenSSL::Crypto)
+else()
+    target_link_libraries(CORE PRIVATE ${OpenFHE_SHARED_LIBRARIES} OpenSSL::Crypto)
+endif()
+
+if(BUILD_STATIC)
+    target_link_libraries(DOPSI PRIVATE ${OpenFHE_STATIC_LIBRARIES} CORE)
+else()
+    target_link_libraries(DOPSI PRIVATE ${OpenFHE_SHARED_LIBRARIES} CORE)
+endif()
+
+
+
+
 # Let the library see your include/ folder
 target_include_directories(DOPMT PRIVATE
     ${PROJECT_SOURCE_DIR}/include
@@ -77,6 +105,7 @@ add_library(PEPSI
     ${PROJECT_SOURCE_DIR}/pepsi/server.cpp
     ${PROJECT_SOURCE_DIR}/pepsi/core.cpp
     ${PROJECT_SOURCE_DIR}/pepsi/tests.cpp
+    ${PROJECT_SOURCE_DIR}/pepsi/pepsi_hashing.cpp
     ${PROJECT_SOURCE_DIR}/include/HE.h
 )
 
@@ -87,16 +116,16 @@ target_include_directories(PEPSI PRIVATE
 
 # Link OpenFHE with PEPSI
 if(BUILD_STATIC)
-    target_link_libraries(PEPSI PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+    target_link_libraries(PEPSI PRIVATE ${OpenFHE_STATIC_LIBRARIES} CORE)
 else()
-    target_link_libraries(PEPSI PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+    target_link_libraries(PEPSI PRIVATE ${OpenFHE_SHARED_LIBRARIES} CORE)
 endif()
 
 # APSI
 add_library(APSI
     ${PROJECT_SOURCE_DIR}/APSI/sender.cpp
     ${PROJECT_SOURCE_DIR}/APSI/receiver.cpp
-    ${PROJECT_SOURCE_DIR}/APSI/hashing.cpp
+    # ${PROJECT_SOURCE_DIR}/APSI/hashing.cpp
     ${PROJECT_SOURCE_DIR}/APSI/core.cpp
     ${PROJECT_SOURCE_DIR}/APSI/poly.cpp 
     ${PROJECT_SOURCE_DIR}/APSI/powers.cpp 
@@ -108,9 +137,9 @@ target_include_directories(APSI PRIVATE
     ${PROJECT_SOURCE_DIR}/APSI
 )
 if(BUILD_STATIC)
-    target_link_libraries(APSI PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+    target_link_libraries(APSI PRIVATE ${OpenFHE_STATIC_LIBRARIES} CORE)
 else()
-    target_link_libraries(APSI PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+    target_link_libraries(APSI PRIVATE ${OpenFHE_SHARED_LIBRARIES} CORE)
 endif()
 
 
@@ -149,4 +178,15 @@ target_include_directories(main_apsi PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/APSI
 )
-target_link_libraries(main_apsi PRIVATE APSI OpenSSL::Crypto)
+target_link_libraries(main_apsi PRIVATE APSI)
+
+add_executable(main_dopsi
+    ${PROJECT_SOURCE_DIR}/DOPSI/main.cpp
+)
+
+target_include_directories(main_dopsi PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/DOPSI
+)
+
+target_link_libraries(main_dopsi PRIVATE DOPSI)

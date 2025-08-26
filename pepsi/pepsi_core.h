@@ -3,6 +3,7 @@
 
 #include <openfhe.h>
 #include "HE.h"
+#include "pepsi_hashing.h"
 
 #define NUM_RAND_MASKS 16
 

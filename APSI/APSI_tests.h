@@ -15,6 +15,7 @@ void testPolyOps();
 void testSender();
 void testFullProtocolTwoParty(int numParties);
 void testFullProtocol(uint32_t numParties, uint32_t numItem, bool isEncrypted);
+void testFullPSI(uint32_t numParties, uint32_t numItem, bool isEncrypted);
 void testPolyEvals();
 void testIntersectionPoly();
 

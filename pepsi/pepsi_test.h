@@ -15,5 +15,12 @@ void testPEPSIProtocol(
     bool isEncrypted
 );
 
+void testPEPSIProtocolPSI(
+  uint32_t numItem,
+  uint32_t bitlen,
+  uint32_t HW,
+  bool isEncrypted
+);
+
 
 #endif
