@@ -1,8 +1,8 @@
 ### Introduction
 
-- Scalable Private Membership Test over Distributed and Encrypted Data
+- Scalable Private Set Intersection over Distributed and Encrypted Data
 
-- IEEE S&P 2026 Anonymous Submission
+- AsiaCCS 2026 Anonymous Submission
 
 ### How to compile and run the code
 
@@ -45,6 +45,12 @@ We also implemented APSI (CCS'21) in OpenFHE for the membership test setting in 
 ```
 
 Note that current code uses the parameter for `1M-1.json` from the official implemention: https://github.com/microsoft/APSI
+
+### Notes for the PSI version
+
+Our code also supports PSI setting with Cuckoo hashing. We implemented it in native C++17, using SHA2 cryptographic hash function in OpenSSL. Fore more details, you can check `/core/hashing.cpp` and `/pepsi/pepsi_hashing.cpp` for details.
+
+On top of this, by follwing the vector-friendly hashing technique and query extraction method, we implement the DO-PSI protocol. You can check `/DOPSI` and other PSI implementations of `APSI` or `PEPSI` for refrence.
 
 ### Parameters of the main code
 
