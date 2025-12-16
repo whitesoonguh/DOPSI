@@ -2,7 +2,9 @@
 
 - Scalable Private Set Intersection over Distributed and Encrypted Data
 
-- AsiaCCS 2026 Anonymous Submission
+- Seunghun Paik, Nirajan Koirala, Jack Nero, Hyunjung Son, Yunki Kim, Jae Hong Seo, and Taeho Jung
+
+- To appear at ASIACCS 2026
 
 ### How to compile and run the code
 
