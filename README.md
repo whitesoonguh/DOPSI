@@ -1,6 +1,6 @@
 ### Introduction
 
-- Scalable Private Set Intersection over Distributed and Encrypted Data
+- Scalable Private Set Intersection over Distributed Encrypted Data
 
 - Seunghun Paik, Nirajan Koirala, Jack Nero, Hyunjung Son, Yunki Kim, Jae Hong Seo, and Taeho Jung
 
